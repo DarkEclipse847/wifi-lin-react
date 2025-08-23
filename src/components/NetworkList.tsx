@@ -4,9 +4,9 @@ const NetworkList = ({items}: {items: NetworkInfo[]})=>{
     return(
         <>
             <h1>Avaliable Networks</h1>
-            <ul>
+            <ul className="list">
                 {items.map((item)=>(
-                    <li key={item.ssid}>
+                    <li className="list_item" key={item.ssid}>
                         {item.ssid}
                     </li>
                 ))}

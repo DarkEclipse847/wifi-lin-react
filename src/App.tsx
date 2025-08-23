@@ -1,6 +1,7 @@
 import { SetStateAction, useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import NetworkList from "./components/NetworkList"
+import InterfaceList from "./components/Interface";
 import getNetworks from "./band/backend"
 import "./App.css";
 import { NetworkInfo } from "./models/models";
@@ -16,16 +17,9 @@ function App() {
   const list_networks = (intr: string) => {
     getNetworks(intr).then((rows)=>setNetItem(rows))
   }
-  list_networks("wlan0")
   return (
     <main className="container">
-      <select>
-        {intrItem.map((data)=>(
-          <option key={data}>
-            {data}
-          </option>
-        ))}
-      </select>
+      <InterfaceList interfaces={intrItem} onInterfaceSelect={list_networks}></InterfaceList>
       <NetworkList items={netItem}/>
     </main>
   );
