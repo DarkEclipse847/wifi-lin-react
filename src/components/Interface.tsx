@@ -13,12 +13,12 @@ const InterfaceList = ({interfaces, onInterfaceSelect}: InterfaceProps)=>{
     }
     return(
         // onSelect is not working for some reason
-        <select onChange = {handleSelect}>
-            <option disabled value={""}>
+        <select className="interface-selection" onChange = {handleSelect}>
+            <option className="interface-selection__option" disabled value={""}>
                 -- Choose an Interface --
             </option>
             {interfaces.map((data)=>(
-                <option key={data} value={data}>
+                <option className="interface-selection__option" key={data} value={data}>
                     {data}
                 </option>
             ))}

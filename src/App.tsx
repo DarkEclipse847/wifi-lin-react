@@ -1,7 +1,7 @@
 import { SetStateAction, useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import NetworkList from "./components/NetworkList"
-import InterfaceList from "./components/Interface";
+import { Navbar } from "./components/Navbar";
 import getNetworks from "./band/backend"
 import "./App.css";
 import { NetworkInfo } from "./models/models";
@@ -19,7 +19,7 @@ function App() {
   }
   return (
     <main className="container">
-      <InterfaceList interfaces={intrItem} onInterfaceSelect={list_networks}></InterfaceList>
+      <Navbar interfaces={intrItem} onEvent={list_networks}></Navbar>
       <NetworkList items={netItem}/>
     </main>
   );

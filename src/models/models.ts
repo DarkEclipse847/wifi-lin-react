@@ -15,3 +15,9 @@ export interface NetworkInfo{
     inUse: boolean,
     saved: boolean
 }
+
+export interface Credentials{
+    ssid: string,
+    password: string,
+    interface: string,
+}
