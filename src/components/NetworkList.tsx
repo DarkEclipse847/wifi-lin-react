@@ -4,7 +4,7 @@ import { Popup } from "./Form";
 
 
 const NetworkList = ({items}: {items: NetworkInfo[]})=>{
-    const [dialogContent, setDialogContent] = useState<string>("")
+    const [dialogContent, setDialogContent] = useState<NetworkInfo>()
     const dialogRef = useRef<HTMLDialogElement>(null)
     function toggleDialog(){
         if(!dialogRef.current){
@@ -21,7 +21,7 @@ const NetworkList = ({items}: {items: NetworkInfo[]})=>{
             <ul className="networks-list">
                 {items.map((item)=>( 
                     <li className="networks-list__item" key={item.ssid} onClick={()=>{
-                            setDialogContent(item.ssid)
+                            setDialogContent(item)
                             toggleDialog()
                     }}>
                         {item.ssid}
