@@ -7,7 +7,7 @@ I find this frustrating, that there is no good gui wrappers around nmcli. By goo
 So, i'm creating this piece of software to provide users with ability to create custom stylesheets for nm
 
 #### Tasks:
-* [ ] choose a good name for this util(maybe wifire?)
+* [x] ~~choose a good name for this util(maybe wifire?)~~
 * [ ] add logging system
 * [ ] add error handling and printing out errors
 * [ ] add simple styling for components to use
@@ -20,6 +20,7 @@ So, i'm creating this piece of software to provide users with ability to create 
 * [ ] add disconnect button
 * [ ] add showing interfaceList on start
 * [ ] fix refreshing program on form submit
-* [ ] add support for free networks
+* [x] ~~add support for free networks~~ <- turns out that networks without security are good with password argument
+    * [ ] add visual representation that network is not secured
 * [ ] find out a way to ship this as AUR package for now(support for other distros are not in priority, but it will be added later)
 * [ ] add css support under $HOME/.config/{project-name}
