@@ -15,3 +15,8 @@ export interface Credentials{
     interface: string,
     saved: boolean
 }
+
+export type ErrorKind = {
+    kind: 'io' | 'connectionErr' | 'disconnectionErr';
+    message: string
+}

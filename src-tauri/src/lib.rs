@@ -6,6 +6,8 @@ use regex::Regex;
 
 //TODO: Add wrapper for ```nmcli radio wifi```
 
+mod error_handling;
+
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 struct NetworkInfo{
@@ -17,9 +19,10 @@ struct NetworkInfo{
     in_use: bool,
     saved: bool
 }
+
 //TODO: instead of manually creating this struct every time, it's better to implement .new() method
 
-fn get_interface_list()-> Result<Vec<String>, Error>{
+fn get_interface_list()-> Result<Vec<String>, error_handling::Error>{
     // `network_interface` crate does not provide device type,
     // so i've considered using nmcli directly, calling required command
     // and parsing the output
@@ -49,12 +52,12 @@ fn get_interface_list()-> Result<Vec<String>, Error>{
 }
 
 #[tauri::command]
-fn interfaces() -> Vec<String> {
-    let interfaces = get_interface_list().expect("Error occured while getting interface list");
-    return interfaces;
+fn interfaces() -> Result<Vec<String>, error_handling::Error> {
+    let interfaces = get_interface_list()?;
+    Ok(interfaces)
 }
 
-fn get_saved_networks()->Result<Vec<String>, Error>{
+fn get_saved_networks()->Result<Vec<String>, error_handling::Error>{
     let re = Regex::new(r"\s\s+").unwrap();
     let mut snvec: Vec<String> = Vec::new();
     let output = Command::new("nmcli")
@@ -82,7 +85,7 @@ fn get_saved_networks()->Result<Vec<String>, Error>{
     Ok(snvec)
 }
 
-fn get_networks(interface: String) -> Result<Vec<NetworkInfo>, Error>{
+fn get_networks(interface: String) -> Result<Vec<NetworkInfo>, error_handling::Error>{
     let re = Regex::new(r"\s\s+").unwrap();
     let saved_networks = get_saved_networks()?;
     let mut nvec: Vec<NetworkInfo> = Vec::new();
@@ -118,7 +121,7 @@ fn get_networks(interface: String) -> Result<Vec<NetworkInfo>, Error>{
                 saved: true
             };
             nvec.push(new_net_info);
-        } else if items[0] == "IN-USE".to_string() or "--".to_string() {
+        } else if items.len()>1 && (items[0] == "IN-USE".to_string() || items[2] == "--".to_string()) {
             continue;
         } else if items.len()>1 && saved_networks.contains(&items[2]) {
              let new_net_info = NetworkInfo{
@@ -133,7 +136,7 @@ fn get_networks(interface: String) -> Result<Vec<NetworkInfo>, Error>{
             println!("{:?}", &new_net_info);
             nvec.push(new_net_info);
 
-        //TODO: Fix this hardcoded shit(len sometimes 1 and sometimes zero for some reason while checking offset str) 
+        //TODO: Fix this hardcoded shit(len sometimes 1 and sometimes zero for some reason while checking offset str)
         } else if items.len()>1{
             let new_net_info = NetworkInfo{
                 bssid:      items[1].to_owned(), // MAC adress
@@ -162,12 +165,12 @@ fn connect(
     password: String,
     interface: String,
     saved: bool,
-) -> String {
+) -> Result<String, error_handling::Error> {
     let output: Output;
-    //After adding logging system need to return some error to js
+    // After adding logging system need to return some error to js
     // and change this unwrap
+    // ^ Done!!!!
     if !saved{
-        println!("{} {} {} {}", &ssid, &password, &interface, saved);
         output = Command::new("nmcli")
             .args(&[
                 "device",
@@ -178,20 +181,34 @@ fn connect(
                 &password,
                 "ifname",
                 &interface
-            ]).output().unwrap();
+            ]).output()?;
     } else {
-        println!("hey");
         output = Command::new("nmcli")
             .args(&[
                 "connection",
                 "up",
                 &ssid
-            ]).output().unwrap();
+            ]).output()?;
     }
     if String::from_utf8_lossy(&output.stdout).as_ref().contains("successfully activated") {
-        return "all good".to_owned();
+        Ok(format!("Successfully connected to {ssid}"))
     } else {
-        return "something went wrong, wait for logging system to find out ;(".to_owned();
+        Err(error_handling::Error::ConnectonErr(ssid))
+    }
+}
+
+#[tauri::command]
+fn forget(ssid: String) -> Result<String, error_handling::Error>{
+    let output = Command::new("nmcli")
+        .args(&[
+            "connection",
+            "delete",
+            &ssid,
+        ]).output()?;
+    if String::from_utf8_lossy(&output.stdout).as_ref().contains("successfully deleted") {
+        Ok(format!("Successfully disconnected from {ssid}"))
+    } else {
+        Err(error_handling::Error::DisconnectionErr(ssid))
     }
 }
 
@@ -200,7 +217,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![interfaces, networks, connect])
+        .invoke_handler(tauri::generate_handler![interfaces, networks, connect, forget])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
